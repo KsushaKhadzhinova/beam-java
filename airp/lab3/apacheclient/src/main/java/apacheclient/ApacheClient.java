@@ -12,14 +12,17 @@ import java.net.URLEncoder;
 // Клиент словаря: вызывает сервлет по url из обычного java-приложения
 public class ApacheClient {
 
+    // адрес сервлета на сервере (Tomcat, порт 8080)
     static String url = "http://localhost:8080/lab_servlet/MyServlet";
 
     // Отправка GET-запроса сервлету и выделение результата из html-ответа
     static String ask(String parameter, String word) throws Exception {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
+            // GET-запрос вида ...MyServlet?txt=слово
             HttpGet request = new HttpGet(url + "?" + parameter + "=" + URLEncoder.encode(word, "UTF-8"));
-            HttpResponse response = client.execute(request);
+            HttpResponse response = client.execute(request);  // отправка запроса серверу
             String html = EntityUtils.toString(response.getEntity(), "UTF-8");
+            // из html-ответа берём текст между <h2> и </h2>
             int start = html.indexOf("<h2>") + 4;
             int end = html.indexOf("</h2>");
             return html.substring(start, end);
@@ -27,6 +30,7 @@ public class ApacheClient {
     }
 
     public static void main(String[] args) {
+        // окно клиента: поле, две кнопки и надпись с результатом
         JFrame frame = new JFrame("Словарь (клиент)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new FlowLayout());
@@ -36,14 +40,14 @@ public class ApacheClient {
         JButton reverseButton = new JButton("Перевести обратно");
         JLabel resultLabel = new JLabel("Введите слово");
 
-        translateButton.addActionListener(e -> {
+        translateButton.addActionListener(e -> {  // рус -> англ (параметр txt)
             try {
                 resultLabel.setText(ask("txt", wordField.getText()));
             } catch (Exception ex) {
                 resultLabel.setText("Ошибка: " + ex.getMessage());
             }
         });
-        reverseButton.addActionListener(e -> {
+        reverseButton.addActionListener(e -> {  // англ -> рус (параметр eng)
             try {
                 resultLabel.setText(ask("eng", wordField.getText()));
             } catch (Exception ex) {

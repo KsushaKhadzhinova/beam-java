@@ -15,7 +15,7 @@ import java.util.Enumeration;
 class Account extends Thread {
     ServerSocket server;
     String amountstring;
-    static int amount = 200;
+    static int amount = 200;  // общий счёт, начальная сумма 200
     serv window; // окно, в журнал которого сервер записывает запросы
 
     public Account(serv window) {
@@ -24,11 +24,11 @@ class Account extends Thread {
 
     public void run() {
         try {
-            server = new ServerSocket(3001); // Номер сокета
+            server = new ServerSocket(3001); // сервер слушает порт 3001
         } catch (Exception e) {
             System.out.println("Ошибка соединения+" + e);
         }
-        while (true) {
+        while (true) {  // бесконечный цикл: обслуживаем клиентов по одному
             Socket s = null;
             try {
                 s = server.accept(); // ожидание соединения с клиентом
@@ -41,8 +41,8 @@ class Account extends Thread {
                 String request = in.readLine();
 
                 PrintStream ps = new PrintStream(s.getOutputStream()); // PrintStream предназначен для текстового вывода
-                int amountcur = ((int) (Math.random() * 1000));
-                if (request.equals("ADD"))
+                int amountcur = ((int) (Math.random() * 1000));  // случайная сумма 0..999
+                if (request.equals("ADD"))  // ADD - добавить, иначе (WITHDRAW) - снять
                     amount += amountcur;
                 else
                     amount -= amountcur;
@@ -51,7 +51,7 @@ class Account extends Thread {
                 ps.flush();
                 // Запись в журнал сервера: откуда пришёл запрос и каким стал счёт
                 window.log.append("[сервер] " + request + " от " + s.getInetAddress().getHostAddress() + ", счёт: " + amountstring + "\n");
-                window.accountField.setText(amountstring);
+                window.accountField.setText(amountstring);  // обновить поле счёта на сервере
                 s.close(); // Сокетное соединение закрывается
             } catch (Exception e) {
                 System.out.println("Ошибка  " + e);
@@ -75,14 +75,14 @@ class clientThread extends Thread {
         this.window = window;
         this.host = host;
         try {
-            s = new Socket(host, 3001);
+            s = new Socket(host, 3001);  // подключение к серверу (адрес + порт)
             dis = new DataInputStream(s.getInputStream());
         } catch (Exception e) {
             System.out.println("Ошибка:  " + e);
         }
     }
 
-    public void run() {
+    public void run() {  // работа клиента в отдельном потоке
         if (s == null) { // соединение не установлено
             window.log.append(name + ": нет связи с сервером " + host + "\n");
             return;
@@ -90,13 +90,13 @@ class clientThread extends Thread {
         try {
             // Отправка запроса серверу
             PrintStream ps = new PrintStream(s.getOutputStream());
-            ps.println(request);
+            ps.println(request);  // клиент -> сервер: "ADD" или "WITHDRAW"
             ps.flush();
 
             String msg = dis.readLine(); // Клиент читает строку из сокета
             if (msg != null) {
                 System.out.println(name + ": " + msg);
-                window.showMessage(name + ": " + msg);
+                window.showMessage(name + ": " + msg);  // показать новый счёт в окне
             }
             s.close();
         } catch (Exception e) {
@@ -107,15 +107,17 @@ class clientThread extends Thread {
 
 // Окно приложения
 public class serv extends Frame implements ActionListener {
+    // Кнопки клиентов: клиент 1 добавляет и снимает, клиент 2 только снимает
     Button client1Add = new Button("Клиент 1: добавить");
     Button client1Withdraw = new Button("Клиент 1: снять");
     Button client2Withdraw = new Button("Клиент 2: снять");
+    // Поле текущего счёта и журнал запросов
     TextField accountField = new TextField("200", 10);
     TextArea log = new TextArea(8, 40);
     String host; // адрес компьютера, на котором работает сервер
 
     public serv() {
-        this("127.0.0.1");
+        this("127.0.0.1");  // по умолчанию сервер на этом же компьютере
     }
 
     public serv(String host) {
@@ -129,7 +131,7 @@ public class serv extends Frame implements ActionListener {
         add(accountField);
         add(log);
 
-        client1Add.addActionListener(this);
+        client1Add.addActionListener(this);  // кнопки -> actionPerformed()
         client1Withdraw.addActionListener(this);
         client2Withdraw.addActionListener(this);
 
@@ -143,7 +145,7 @@ public class serv extends Frame implements ActionListener {
     // Запуск клиента по нажатию кнопки
     public void actionPerformed(ActionEvent ae) {
         if (ae.getSource() == client1Add)
-            new clientThread("Клиент 1", "ADD", this, host).start();
+            new clientThread("Клиент 1", "ADD", this, host).start();  // новый поток на каждое нажатие
         else if (ae.getSource() == client1Withdraw)
             new clientThread("Клиент 1", "WITHDRAW", this, host).start();
         else if (ae.getSource() == client2Withdraw)
@@ -179,12 +181,13 @@ public class serv extends Frame implements ActionListener {
     }
 
     public static void main(String args[]) {
+        // без параметров - сервер + клиенты; с адресом - только клиенты
         if (args.length == 0) { // сервер и клиенты на одном компьютере
             serv f = new serv();
             f.setTitle("Счёт (сервер, IP: " + localAddresses() + ")");
             f.setSize(400, 400);
             f.setVisible(true);
-            new Account(f).start();
+            new Account(f).start();  // запуск потока-сервера
         } else { // только клиенты, сервер на другом компьютере
             serv f = new serv(args[0]);
             f.setTitle("Счёт (клиент, сервер: " + args[0] + ")");

@@ -14,16 +14,18 @@ import javax.servlet.http.HttpServletResponse;
 // Переводы хранятся в базе данных.
 public class MyServlet extends HttpServlet {
 
-    private Connection connection;
+    private Connection connection;  // соединение с базой данных
 
     // Создание базы данных с переводами слов
     @Override
-    public void init() throws ServletException {
+    public void init() throws ServletException {  // вызывается один раз при загрузке сервлета
         try {
             Class.forName("org.h2.Driver");
+            // база H2 в памяти: исчезает при остановке сервера
             connection = DriverManager.getConnection("jdbc:h2:mem:dictionary;DB_CLOSE_DELAY=-1");
             Statement st = connection.createStatement();
             st.execute("CREATE TABLE words (rus VARCHAR(50), eng VARCHAR(50))");
+            // заполняем таблицу переводами
             st.execute("INSERT INTO words VALUES ('привет', 'hello'), ('дом', 'house'), "
                     + "('книга', 'book'), ('студент', 'student'), ('компьютер', 'computer'), "
                     + "('вода', 'water'), ('солнце', 'sun'), ('друг', 'friend'), "
@@ -35,6 +37,7 @@ public class MyServlet extends HttpServlet {
 
     // Поиск перевода в базе данных: from - столбец с исходным словом, to - столбец с переводом
     private String translate(String from, String to, String word) throws Exception {
+        // ? - параметр запроса (защита от SQL-инъекций)
         PreparedStatement ps = connection.prepareStatement(
                 "SELECT " + to + " FROM words WHERE " + from + " = ?");
         ps.setString(1, word.trim().toLowerCase());
@@ -45,13 +48,14 @@ public class MyServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = response.getWriter();
+        PrintWriter out = response.getWriter();  // поток для записи html-ответа
 
         String rus_word = request.getParameter("txt"); // русское слово
         String eng_word = request.getParameter("eng"); // английское слово (обратный перевод)
 
-        String result;
+        String result;  // текст, который покажем на странице
         try {
+            // есть русское слово -> перевод; есть английское -> обратный перевод
             if (rus_word != null && !rus_word.trim().isEmpty()) {
                 String found = translate("rus", "eng", rus_word);
                 result = found == null ? "Слово «" + rus_word + "» не найдено" : rus_word + " - " + found;
@@ -65,6 +69,7 @@ public class MyServlet extends HttpServlet {
             throw new ServletException(e);
         }
 
+        // формируем html-страницу ответа
         out.println("<html>");
         out.println("<head>");
         out.println("<title>Servlet MyServlet</title>");

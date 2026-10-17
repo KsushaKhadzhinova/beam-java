@@ -12,15 +12,17 @@ public class ImageServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         // Файл с рисунком находится в каталоге приложения
+        // открываем файл рисунка из папки приложения (webapp/images)
         InputStream in = getServletContext().getResourceAsStream("/images/picture.png");
-        if (in == null) {
+        if (in == null) {  // файла нет -> ответ 404
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Файл рисунка не найден");
             return;
         }
 
         // Тип содержимого: браузер сам отображает рисунок
-        response.setContentType("image/png");
+        response.setContentType("image/png");  // сообщаем браузеру тип данных
         OutputStream out = response.getOutputStream();
+        // копируем файл в ответ кусками по 4 КБ
         byte[] buffer = new byte[4096];
         int length;
         while ((length = in.read(buffer)) != -1) {
@@ -31,6 +33,7 @@ public class ImageServlet extends HttpServlet {
     }
 
     @Override
+    // GET и POST оба идут в processRequest
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
