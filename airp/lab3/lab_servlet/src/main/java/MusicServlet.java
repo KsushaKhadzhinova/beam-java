@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 // Сервлет возвращает на сторону клиента музыкальный файл (браузер сам проигрывает его)
+// ТЕОРИЯ: так же, как с рисунком, но Content-Type "audio/wav" (для mp3 - "audio/mpeg");
+// браузер по типу запускает встроенный проигрыватель. Данные передаются потоком байтов,
+// буфер 4 КБ выравнивает скорость чтения файла и записи в сеть.
 public class MusicServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)

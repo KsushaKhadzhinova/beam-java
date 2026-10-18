@@ -8,6 +8,20 @@ import java.net.URLConnection;
 import java.util.*;
 
 // Вариант 2: поиск названия лекарства по 1-3 симптомам.
+//
+// ТЕОРИЯ, которую спрашивает преподаватель (из чата группы):
+// 1. Назначения буфера (3): а) выравнивание скорости медленного диска и быстрой
+//    оперативной памяти; б) асинхронный ввод-вывод; в) кэширование данных.
+//    В программе буфер - BufferedReader (readLines) и StringBuilder-подобный список строк.
+// 2. Массив, ArrayList и List: массив (String[]) имеет фиксированный размер;
+//    ArrayList - класс-коллекция, размер растёт сам; List - интерфейс (контракт),
+//    который реализует ArrayList. Термин "список" - как в Прологе.
+//    Здесь: String[] keywords (массив) и ArrayList<String> (список строк файла и строк html).
+// 3. Куча и стек: локальные переменные (bestCount, keywords-ссылка) лежат в стеке потока;
+//    объекты (ArrayList, String, окно) - в куче, ими управляет сборщик мусора.
+// 4. Кэш - быстрая память процессора между ним и оперативной памятью.
+// 5. URL - адрес ресурса (протокол, хост, порт, путь); здесь протокол file:.
+// 6. Слушатель (Listener): ActionListener получает события кнопок.
 // Список лекарств и симптомов находится в текстовом файле medicines.txt,
 // описания лекарств (html-документы) находятся в папке source_html.
 public class Web_res_lab extends Frame implements ActionListener {
@@ -16,7 +30,9 @@ public class Web_res_lab extends Frame implements ActionListener {
     Button exitButton = new Button("Exit");
     Button searchButton = new Button("Search");
     Button pdfButton = new Button("PDF");  // открывает PDF-описание найденного лекарства
+    Button htmlButton = new Button("HTML"); // строит html-страницу с результатами и открывает её
     String lastFound = null;               // название последнего найденного лекарства
+    ArrayList<String> lastRows = new ArrayList<>(); // строки "название : счёт" последнего поиска
     TextArea textArea = new TextArea();
 
     public Web_res_lab() {
@@ -38,6 +54,10 @@ public class Web_res_lab extends Frame implements ActionListener {
         pdfButton.addActionListener(this);
         add(pdfButton);
 
+        htmlButton.setBounds(330, 165, 100, 20);
+        htmlButton.addActionListener(this);
+        add(htmlButton);
+
         textArea.setBounds(20, 50, 300, 100);
         add(textArea);
 
@@ -56,6 +76,13 @@ public class Web_res_lab extends Frame implements ActionListener {
     public void actionPerformed(ActionEvent ae) {  // сюда приходят нажатия обеих кнопок
         if (ae.getSource() == exitButton) {
             System.exit(0);
+        } else if (ae.getSource() == htmlButton) {
+            // Генерация html-страницы с результатами через ArrayList и открытие в браузере
+            if (lastRows.isEmpty()) {
+                textArea.append("\nСначала выполните поиск (Search)");
+            } else {
+                openInBrowser(writeResultPage());
+            }
         } else if (ae.getSource() == pdfButton) {
             // PDF лежит в source_pdf под тем же именем, что и html-описание
             if (lastFound == null) {
@@ -75,6 +102,7 @@ public class Web_res_lab extends Frame implements ActionListener {
             // Ищем лекарство с наибольшим числом совпавших симптомов
             String bestName = null;
             int bestCount = 0;
+            lastRows = new ArrayList<>();  // новый поиск - очищаем прошлые результаты
             for (String line : medicines) {
                 // Формат строки: Название | симптом1, симптом2, ...
                 String[] parts = line.split("\\|");  // parts[0] - название, parts[1] - симптомы
@@ -84,6 +112,7 @@ public class Web_res_lab extends Frame implements ActionListener {
                 String name = parts[0].trim();
                 int coincidenceCount = testSymptoms(parts[1], keywords);
                 textArea.append("\n" + name + "  :" + coincidenceCount);  // счёт по каждому лекарству
+                lastRows.add(name + "|" + coincidenceCount);  // запоминаем для html-страницы
                 if (coincidenceCount > bestCount) {
                     bestCount = coincidenceCount;
                     bestName = name;
@@ -98,6 +127,40 @@ public class Web_res_lab extends Frame implements ActionListener {
                 openInBrowser(new File("source_html", bestName + ".html"));  // открыть описание победителя
             }
         }
+    }
+
+    // Генерация html-страницы: каждая строка страницы - элемент ArrayList<String>,
+    // затем список целиком записывается в файл result.html
+    private File writeResultPage() {
+        ArrayList<String> html = new ArrayList<>();   // тут собирается страница строка за строкой
+        html.add("<!DOCTYPE html>");
+        html.add("<html><head><meta charset=\"UTF-8\"><title>Результаты поиска</title></head>");
+        html.add("<body bgcolor=\"#aaccff\">");
+        html.add("<h1>Результаты поиска</h1>");
+        html.add("<table border=\"1\" cellpadding=\"6\"><tr><th>Лекарство</th><th>Совпадений</th></tr>");
+        for (String row : lastRows) {                 // по строке таблицы на каждое лекарство
+            String[] p = row.split("\\|");
+            html.add("<tr><td>" + p[0] + "</td><td>" + p[1] + "</td></tr>");
+        }
+        html.add("</table>");
+        if (lastFound != null) {                      // ссылки на описание победителя
+            html.add("<h2>Лекарство: " + lastFound + "</h2>");
+            html.add("<p><a href=\"source_html/" + lastFound + ".html\">Описание (html)</a> | "
+                    + "<a href=\"source_pdf/" + lastFound + ".pdf\">Описание (pdf)</a></p>");
+        } else {
+            html.add("<h2>Лекарство не найдено</h2>");
+        }
+        html.add("</body></html>");
+
+        File out = new File("result.html");
+        try (PrintWriter writer = new PrintWriter(out, "UTF-8")) {
+            for (String line : html) {                // запись списка в файл
+                writer.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return out;
     }
 
     // Чтение строк файла через URL и потоковые классы

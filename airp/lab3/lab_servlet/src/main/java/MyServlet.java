@@ -11,6 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 // Сервлет словаря: перевод с русского на английский и обратный перевод.
+//
+// ТЕОРИЯ, которую спрашивает преподаватель (контрольные вопросы и лекции):
+// - Сервлет - Java-класс на стороне сервера (наследник HttpServlet), работает внутри
+//   контейнера (Tomcat). Жизненный цикл: init() один раз -> doGet/doPost на каждый запрос ->
+//   destroy() при остановке. Основные объекты: HttpServletRequest (запрос) и HttpServletResponse (ответ).
+// - Как сервлет вызывается с сайта: <form action="MyServlet" method="Get">; поле name="txt"
+//   читается как request.getParameter("txt"). GET - параметры в URL, POST - в теле запроса.
+// - web.xml (WEB-INF): <servlet> задаёт имя и класс, <servlet-mapping> - URL, <welcome-file-list> -
+//   стартовую страницу, <session-timeout> - время жизни сессии (минуты).
+// - Результат клиенту: response.getWriter() + println (текст/html) или getOutputStream() (байты).
+// - Tomcat - веб-сервер и сервлет-контейнер (порт 8080); приложение упаковывается в WAR.
+// - JDBC: PreparedStatement с "?" защищает от SQL-инъекций; H2 - встроенная база данных.
 // Переводы хранятся в базе данных.
 public class MyServlet extends HttpServlet {
 

@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 // Вариант 2: сервлет возвращает на сторону клиента файл с рисунком
+// ТЕОРИЯ: заголовок Content-Type (setContentType) сообщает браузеру тип ответа, поэтому
+// "image/png" браузер показывает как рисунок, а не как текст. Бинарные данные пишутся в
+// getOutputStream() (для текста используется getWriter()). Файл читается кусками через буфер.
 public class ImageServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
