@@ -15,6 +15,8 @@ public class Web_res_lab extends Frame implements ActionListener {
     // Элементы окна: кнопки и поле для ввода симптомов / вывода результата
     Button exitButton = new Button("Exit");
     Button searchButton = new Button("Search");
+    Button pdfButton = new Button("PDF");  // открывает PDF-описание найденного лекарства
+    String lastFound = null;               // название последнего найденного лекарства
     TextArea textArea = new TextArea();
 
     public Web_res_lab() {
@@ -31,6 +33,10 @@ public class Web_res_lab extends Frame implements ActionListener {
         searchButton.setBounds(110, 165, 100, 20);
         searchButton.addActionListener(this);
         add(searchButton);
+
+        pdfButton.setBounds(220, 165, 100, 20);
+        pdfButton.addActionListener(this);
+        add(pdfButton);
 
         textArea.setBounds(20, 50, 300, 100);
         add(textArea);
@@ -50,6 +56,13 @@ public class Web_res_lab extends Frame implements ActionListener {
     public void actionPerformed(ActionEvent ae) {  // сюда приходят нажатия обеих кнопок
         if (ae.getSource() == exitButton) {
             System.exit(0);
+        } else if (ae.getSource() == pdfButton) {
+            // PDF лежит в source_pdf под тем же именем, что и html-описание
+            if (lastFound == null) {
+                textArea.append("\nСначала выполните поиск (Search)");
+            } else {
+                openInBrowser(new File("source_pdf", lastFound + ".pdf"));
+            }
         } else if (ae.getSource() == searchButton) {
             // Ключевые слова (симптомы) разделяются запятыми
             String[] keywords = textArea.getText().split(",");
@@ -77,6 +90,7 @@ public class Web_res_lab extends Frame implements ActionListener {
                 }
             }
 
+            lastFound = bestName;  // запоминаем результат для кнопки PDF
             if (bestName == null) {
                 textArea.append("\nЛекарство не найдено");
             } else {
@@ -120,7 +134,7 @@ public class Web_res_lab extends Frame implements ActionListener {
         return results;
     }
 
-    // Открытие html-документа в браузере
+    // Открытие html- или pdf-документа в программе по умолчанию (браузер)
     private void openInBrowser(File file) {
         try {
             // запуск браузера по умолчанию
