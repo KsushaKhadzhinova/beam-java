@@ -9,32 +9,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.URLEncoder;
 
-// Клиент словаря: вызывает сервлет по url из обычного java-приложения
-// ТЕОРИЯ: клиент и сервер - два разных проекта; сервлет - это сервис по URL, его можно
-// вызвать не только из браузера, но и из любой программы по протоколу HTTP (GET-запрос).
-// HttpClient (Apache) отправляет запрос, EntityUtils читает тело ответа (html); параметры
-// кодируются URLEncoder, чтобы русские буквы корректно ушли в адресе.
+// Клиент (отдельный проект): вызывает сервлет по url
 public class ApacheClient {
 
-    // адрес сервлета на сервере (Tomcat, порт 8080)
     static String url = "http://localhost:8080/lab_servlet/MyServlet";
 
-    // Отправка GET-запроса сервлету и выделение результата из html-ответа
+    // parameter: "txt" - русское слово, "eng" - английское слово
     static String ask(String parameter, String word) throws Exception {
-        try (CloseableHttpClient client = HttpClients.createDefault()) {
-            // GET-запрос вида ...MyServlet?txt=слово
-            HttpGet request = new HttpGet(url + "?" + parameter + "=" + URLEncoder.encode(word, "UTF-8"));
-            HttpResponse response = client.execute(request);  // отправка запроса серверу
-            String html = EntityUtils.toString(response.getEntity(), "UTF-8");
-            // из html-ответа берём текст между <h2> и </h2>
-            int start = html.indexOf("<h2>") + 4;
-            int end = html.indexOf("</h2>");
-            return html.substring(start, end);
-        }
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpGet request = new HttpGet(url + "?" + parameter + "=" + URLEncoder.encode(word, "UTF-8"));
+        HttpResponse response = client.execute(request);
+        String html = EntityUtils.toString(response.getEntity(), "UTF-8");
+        client.close();
+        // результат лежит между <h2> и </h2>
+        return html.substring(html.indexOf("<h2>") + 4, html.indexOf("</h2>"));
     }
 
     public static void main(String[] args) {
-        // окно клиента: поле, две кнопки и надпись с результатом
         JFrame frame = new JFrame("Словарь (клиент)");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new FlowLayout());
@@ -44,14 +35,14 @@ public class ApacheClient {
         JButton reverseButton = new JButton("Перевести обратно");
         JLabel resultLabel = new JLabel("Введите слово");
 
-        translateButton.addActionListener(e -> {  // рус -> англ (параметр txt)
+        translateButton.addActionListener(e -> {
             try {
                 resultLabel.setText(ask("txt", wordField.getText()));
             } catch (Exception ex) {
                 resultLabel.setText("Ошибка: " + ex.getMessage());
             }
         });
-        reverseButton.addActionListener(e -> {  // англ -> рус (параметр eng)
+        reverseButton.addActionListener(e -> {
             try {
                 resultLabel.setText(ask("eng", wordField.getText()));
             } catch (Exception ex) {

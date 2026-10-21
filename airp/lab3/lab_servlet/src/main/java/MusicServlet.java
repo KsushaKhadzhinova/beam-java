@@ -6,25 +6,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// Сервлет возвращает на сторону клиента музыкальный файл (браузер сам проигрывает его)
-// ТЕОРИЯ: так же, как с рисунком, но Content-Type "audio/wav" (для mp3 - "audio/mpeg");
-// браузер по типу запускает встроенный проигрыватель. Данные передаются потоком байтов,
-// буфер 4 КБ выравнивает скорость чтения файла и записи в сеть.
+// Вариант 3: сервлет возвращает клиенту музыкальный файл
 public class MusicServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Файл с музыкой находится в каталоге приложения (webapp/music)
         InputStream in = getServletContext().getResourceAsStream("/music/music.wav");
-        if (in == null) {  // файла нет -> ответ 404
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Музыкальный файл не найден");
-            return;
-        }
-
-        // Тип содержимого: audio/wav - браузер запускает встроенный проигрыватель
-        response.setContentType("audio/wav");
+        response.setContentType("audio/wav");  // браузер проиграет музыку
         OutputStream out = response.getOutputStream();
-        // копируем файл в ответ кусками по 4 КБ
         byte[] buffer = new byte[4096];
         int length;
         while ((length = in.read(buffer)) != -1) {
@@ -34,7 +23,6 @@ public class MusicServlet extends HttpServlet {
         out.close();
     }
 
-    // GET и POST оба идут в processRequest
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

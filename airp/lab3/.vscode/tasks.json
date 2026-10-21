@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "options": {
+    "env": {
+      "JAVA_HOME": "E:\tools\jdk17",
+      "CATALINA_HOME": "E:\tools\apache-tomcat-9.0.122"
+    }
+  },
+  "tasks": [
+    {
+      "label": "1. Собрать WAR и скопировать в Tomcat",
+      "type": "shell",
+      "command": "& 'E:\tools\apache-maven-3.10.0\bin\mvn.cmd' -q package; Copy-Item target\lab_servlet.war 'E:\tools\apache-tomcat-9.0.122\webapps\' -Force",
+      "options": { "cwd": "${workspaceFolder}/lab_servlet", "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] } },
+      "problemMatcher": []
+    },
+    {
+      "label": "2. Запустить Tomcat",
+      "type": "shell",
+      "command": "& 'E:\tools\apache-tomcat-9.0.122\bin\catalina.bat' run",
+      "isBackground": true,
+      "options": { "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] } },
+      "problemMatcher": []
+    },
+    {
+      "label": "3. Собрать и запустить клиента",
+      "type": "shell",
+      "command": "& 'E:\tools\apache-maven-3.10.0\bin\mvn.cmd' -q package; & 'E:\tools\jdk17\bin\java.exe' '-Dfile.encoding=UTF-8' -jar target\apacheclient-1.0.jar",
+      "options": { "cwd": "${workspaceFolder}/apacheclient", "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] } },
+      "problemMatcher": []
+    },
+    {
+      "label": "4. Остановить Tomcat",
+      "type": "shell",
+      "command": "& 'E:\tools\apache-tomcat-9.0.122\bin\shutdown.bat'",
+      "options": { "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] } },
+      "problemMatcher": []
+    }
+  ]
+}
