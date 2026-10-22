@@ -6,13 +6,22 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-// Вариант 3: сервлет возвращает клиенту музыкальный файл
+// Вариант 3: сервлет возвращает на сторону клиента музыкальный файл (Моцарт),
+// браузер сам открывает его в проигрывателе и начинает воспроизведение
 public class MusicServlet extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        InputStream in = getServletContext().getResourceAsStream("/music/music.wav");
-        response.setContentType("audio/wav");  // браузер проиграет музыку
+        // Музыкальный файл находится в каталоге приложения
+        InputStream in = getServletContext().getResourceAsStream("/music/mozart.wav");
+        if (in == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Музыкальный файл не найден");
+            return;
+        }
+
+        // Тип содержимого: браузер сам проигрывает аудио
+        response.setContentType("audio/wav");
+        response.setHeader("Content-Disposition", "inline; filename=\"mozart.wav\"");
         OutputStream out = response.getOutputStream();
         byte[] buffer = new byte[4096];
         int length;

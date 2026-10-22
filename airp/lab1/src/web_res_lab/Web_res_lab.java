@@ -9,7 +9,6 @@ import java.util.*;
 
 // Вариант 2: поиск названия лекарства по 1-3 симптомам.
 //
-// ТЕОРИЯ, которую спрашивает преподаватель (из чата группы):
 // 1. Назначения буфера (3): а) выравнивание скорости медленного диска и быстрой
 //    оперативной памяти; б) асинхронный ввод-вывод; в) кэширование данных.
 //    В программе буфер - BufferedReader (readLines) и StringBuilder-подобный список строк.
@@ -23,13 +22,14 @@ import java.util.*;
 // 5. URL - адрес ресурса (протокол, хост, порт, путь); здесь протокол file:.
 // 6. Слушатель (Listener): ActionListener получает события кнопок.
 // Список лекарств и симптомов находится в текстовом файле medicines.txt,
-// описания лекарств (html-документы) находятся в папке source_html.
+// описания лекарств (html-документы) находятся в папке source_html,
+// pdf-описания - в папке source_pdf (кнопка PDF показывает их в отдельном окне, библиотека PDFBox из папки lib).
 public class Web_res_lab extends Frame implements ActionListener {
 
     // Элементы окна: кнопки и поле для ввода симптомов / вывода результата
     Button exitButton = new Button("Exit");
     Button searchButton = new Button("Search");
-    Button pdfButton = new Button("PDF");  // открывает PDF-описание найденного лекарства
+    Button pdfButton = new Button("PDF");  // показывает PDF-описание найденного лекарства в окне
     Button htmlButton = new Button("HTML"); // строит html-страницу с результатами и открывает её
     String lastFound = null;               // название последнего найденного лекарства
     ArrayList<String> lastRows = new ArrayList<>(); // строки "название : счёт" последнего поиска
@@ -88,7 +88,7 @@ public class Web_res_lab extends Frame implements ActionListener {
             if (lastFound == null) {
                 textArea.append("\nСначала выполните поиск (Search)");
             } else {
-                openInBrowser(new File("source_pdf", lastFound + ".pdf"));
+                showPdf(new File("source_pdf", lastFound + ".pdf"));
             }
         } else if (ae.getSource() == searchButton) {
             // Ключевые слова (симптомы) разделяются запятыми
@@ -124,7 +124,7 @@ public class Web_res_lab extends Frame implements ActionListener {
                 textArea.append("\nЛекарство не найдено");
             } else {
                 textArea.append("\n\nЛекарство: " + bestName);
-                openInBrowser(new File("source_html", bestName + ".html"));  // открыть описание победителя
+                openInBrowser(findHtml(bestName));  // открыть описание победителя
             }
         }
     }
@@ -162,8 +162,7 @@ public class Web_res_lab extends Frame implements ActionListener {
         }
         return out;
     }
-
-    // Чтение строк файла через URL и потоковые классы
+// Чтение строк файла через URL и потоковые классы
     private ArrayList<String> readLines(File file) {
         ArrayList<String> lines = new ArrayList<>();
         try {
@@ -197,13 +196,41 @@ public class Web_res_lab extends Frame implements ActionListener {
         return results;
     }
 
-    // Открытие html- или pdf-документа в программе по умолчанию (браузер)
+    // Поиск html-описания среди всех файлов папки source_html
+    // (как в методичке: listFiles() -> ArrayList<File>)
+    private File findHtml(String name) {
+        File[] all = new File("source_html").listFiles();   // список файлов папки (null, если папки нет)
+        ArrayList<File> files = all == null ? new ArrayList<File>() : new ArrayList<>(Arrays.asList(all));
+        for (File f : files) {
+            if (f.getName().equals(name + ".html")) {
+                return f;
+            }
+        }
+        return new File("source_html", name + ".html");
+    }
+
+    // Открытие html-документа в программе по умолчанию (браузер)
     private void openInBrowser(File file) {
         try {
             // запуск браузера по умолчанию
             Desktop.getDesktop().browse(file.getAbsoluteFile().toURI());
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    // Показ PDF в отдельном окне программы: первая страница рисуется библиотекой PDFBox
+    private void showPdf(File pdf) {
+        try (org.apache.pdfbox.pdmodel.PDDocument doc = org.apache.pdfbox.pdmodel.PDDocument.load(pdf)) {
+            java.awt.image.BufferedImage img =
+                    new org.apache.pdfbox.rendering.PDFRenderer(doc).renderImageWithDPI(0, 90);
+            javax.swing.JFrame f = new javax.swing.JFrame(pdf.getName());
+            f.add(new javax.swing.JScrollPane(new javax.swing.JLabel(new javax.swing.ImageIcon(img))));
+            f.setSize(700, 800);
+            f.setLocationRelativeTo(null);
+            f.setVisible(true);
+        } catch (IOException e) {
+            textArea.append("\nНе удалось открыть PDF: " + e.getMessage());
         }
     }
 
