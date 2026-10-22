@@ -249,7 +249,9 @@ E:\tools\jdk17\bin\java.exe -Dfile.encoding=UTF-8 -jar target\apacheclient-1.0.j
 <tr><td><code>…/ImageServlet</code></td><td>рисунок в браузере</td></tr>
 <tr><td><code>…/MusicServlet</code></td><td>проигрыватель с музыкой</td></tr>
 <tr><td><code>…/MakServlet</code></td><td>цена и картинка чизбургера</td></tr>
+<tr><td><code>…/McDonaldsServlet</code></td><td>вариант чизбургера из ветки origin/main (слит с локальной веткой, оба сервлета есть в web.xml)</td></tr>
 </tbody></table></div>
+<p class="note"><b>Запуск из VS Code (Run).</b> В <code>.vscode/launch.json</code> есть конфигурация «Клиент (ApacheClient)»: выбери её на вкладке Run and Debug и нажми зелёный треугольник. Tomcat запускается задачей «2. Запустить Tomcat» (Terminal → Run Task), WAR собирает задача 1. Расширения: Java Pack и Tomcat for Java (<code>adashen.vscode-tomcat</code>). В <code>settings.json</code> пути к JDK теперь с прямыми слэшами.</p>
 <p>Слова в базе: привет, дом, книга, студент, компьютер. Любое другое даст «не найдено».</p>
 <p class="note">Проверено: WAR собирается, Tomcat 9.0.122 его разворачивает, все шесть адресов отвечают кодом 200. Чизбургер вернул <code>4.5 руб.</code>, окно клиента показало <code>дом - house</code> и <code>book - книга</code>.</p>
 </section>
