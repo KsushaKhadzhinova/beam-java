@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Клиент (ApacheClient)",
+      "request": "launch",
+      "mainClass": "apacheclient.ApacheClient",
+      "projectName": "apacheclient",
+      "vmArgs": "-Dfile.encoding=UTF-8"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 {
-  "java.jdt.ls.java.home": "E:\tools\jdk17",
-  "java.configuration.runtimes": [{ "name": "JavaSE-17", "path": "E:\tools\jdk17", "default": true }],
+  "java.jdt.ls.java.home": "E:/tools/jdk17",
+  "java.configuration.runtimes": [{ "name": "JavaSE-17", "path": "E:/tools/jdk17", "default": true }],
+  "java.import.maven.enabled": true,
+  "maven.executable.path": "E:/tools/apache-maven-3.10.0/bin/mvn.cmd",
   "files.encoding": "utf8"
 }
